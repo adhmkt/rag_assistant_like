@@ -1,0 +1,105 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run pytest for VisitAssist RAG",
+			"type": "shell",
+			"command": "pytest visitassist_rag/tests/",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run pytest for VisitAssist RAG with PYTHONPATH",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run pytest for VisitAssist RAG with PYTHONPATH (fixed)",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run pytest for VisitAssist RAG with PYTHONPATH (final fix)",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run pytest for VisitAssist RAG with PYTHONPATH (final real fix)",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run only test_query.py for VisitAssist RAG",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/test_query.py",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run only test_query.py for VisitAssist RAG (retrieval.py fixed)",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/test_query.py",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run only test_query.py for VisitAssist RAG (embeddings.py fixed)",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/test_query.py",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run only test_query.py for VisitAssist RAG (after .env/server restart)",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/test_query.py",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		},
+		{
+			"label": "Run only test_query.py for VisitAssist RAG (pinecone_store.py fixed)",
+			"type": "shell",
+			"command": "$env:PYTHONPATH = (Get-Location).Path; pytest visitassist_rag/tests/test_query.py",
+			"args": [],
+			"problemMatcher": [
+				"$pytest"
+			],
+			"group": "test"
+		}
+	]
+}
