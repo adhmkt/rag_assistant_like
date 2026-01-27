@@ -1,7 +1,7 @@
 import fitz  # PyMuPDF
 import requests
 
-pdf_path = "C:\\rag-project\\rag_assistant_like\\visitassist_rag\\itaipu.pdf"
+pdf_path = "C:\\rag-project\\rag_assistant_like\\visitassist_rag\\aspectos.pdf"
 batch_size = 50  # Number of pages per batch
 
 try:
@@ -21,13 +21,12 @@ for start in range(0, num_pages, batch_size):
             print(f"No text found in pages {start+1}-{end}, skipping.")
             continue
         resp = requests.post(
-            "http://localhost:8000/ingest/text",
+            "http://localhost:8000/v1/kb/itaipu/ingest/text",
             json={
-                "title": f"Bublia Itaipu (pages {start+1}-{end})",
+                "title": f"Aspectos (pages {start+1}-{end})",
                 "text": batch_text,
                 "source_type": "pdf",
                 "source_uri": pdf_path,
-                "kb_id": "itaipu",
                 "language": "pt"
             },
             timeout=120

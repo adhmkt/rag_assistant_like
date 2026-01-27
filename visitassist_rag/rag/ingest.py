@@ -61,6 +61,7 @@ def ingest_text_document(kb_id: str, title: str, text: str, source_type: str, so
             "section_id": ch.section_id or "",
             "chunk_index": ch.chunk_index,
             "ingest_version": "v1",
+            "chunk_text": ch.chunk_text,
         }
         pine_vectors.append((chunk_id, emb, meta))
     upsert_chunks(pine_vectors)
