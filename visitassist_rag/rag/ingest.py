@@ -46,6 +46,8 @@ def ingest_text_document(kb_id: str, title: str, text: str, source_type: str, so
     texts = [c.chunk_text for c in all_chunks]
     embs = embed_texts(texts)
     pine_vectors = []
+    doc_date = kwargs.get("doc_date")
+    doc_year = kwargs.get("doc_year")
     for idx, (ch, emb) in enumerate(zip(all_chunks, embs)):
         chunk_id = str(uuid.uuid4())
         insert_chunk(chunk_id, ch)
@@ -63,6 +65,10 @@ def ingest_text_document(kb_id: str, title: str, text: str, source_type: str, so
             "ingest_version": "v1",
             "chunk_text": ch.chunk_text,
         }
+        if doc_date:
+            meta["doc_date"] = doc_date
+        if doc_year:
+            meta["doc_year"] = doc_year
         pine_vectors.append((chunk_id, emb, meta))
     upsert_chunks(pine_vectors)
     return IngestResponse(success=True, doc_id=doc_id)

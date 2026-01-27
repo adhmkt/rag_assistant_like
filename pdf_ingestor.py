@@ -27,7 +27,9 @@ for start in range(0, num_pages, batch_size):
                 "text": batch_text,
                 "source_type": "pdf",
                 "source_uri": pdf_path,
-                "language": "pt"
+                "language": "pt",
+                "doc_date": "2026-01-01",   # <-- Add this line
+                "doc_year": 2026            # <-- And/or this line
             },
             timeout=120
         )

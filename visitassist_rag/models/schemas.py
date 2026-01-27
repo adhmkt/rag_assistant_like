@@ -7,6 +7,8 @@ class IngestTextRequest(BaseModel):
     source_type: str = "txt"
     source_uri: str = ""
     language: str = "pt"
+    doc_date: Optional[str] = None
+    doc_year: Optional[int] = None
 
 class IngestResponse(BaseModel):
     success: bool

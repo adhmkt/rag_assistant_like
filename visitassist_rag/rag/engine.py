@@ -43,6 +43,11 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
         cands += pinecone_query(question, 8,  build_filter(kb_id2, language, "section", source_types, debug_no_filter, less_strict))
         cands += pinecone_query(question, 18, build_filter(kb_id2, language, "fine", source_types, debug_no_filter, less_strict))
 
+    # Sort candidates by doc_year descending (latest first)
+    def get_year(c):
+        meta = c.get('metadata', {}) if isinstance(c, dict) else getattr(c, 'metadata', {})
+        return meta.get('doc_year', 0) or 0
+    cands = sorted(cands, key=get_year, reverse=True)
     cands = dedupe_snippets(cands)
     answer, snippets, trace = grounded_answer(question, cands, mode=mode, debug=debug)
 
