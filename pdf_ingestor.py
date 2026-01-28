@@ -1,7 +1,7 @@
 import fitz  # PyMuPDF
 import requests
 
-pdf_path = "C:\\rag-project\\rag_assistant_like\\visitassist_rag\\aspectos.pdf"
+pdf_path = "C:\\rag-project\\rag_assistant_like\\visitassist_rag\\itaipu.pdf"
 batch_size = 50  # Number of pages per batch
 
 try:
@@ -23,13 +23,13 @@ for start in range(0, num_pages, batch_size):
         resp = requests.post(
             "http://localhost:8000/v1/kb/itaipu/ingest/text",
             json={
-                "title": f"Aspectos (pages {start+1}-{end})",
+                "title": f"Biblia Itaipu (pages {start+1}-{end})",
                 "text": batch_text,
                 "source_type": "pdf",
                 "source_uri": pdf_path,
                 "language": "pt",
-                "doc_date": "2026-01-01",   # <-- Add this line
-                "doc_year": 2026            # <-- And/or this line
+                "doc_date": "1990-01-01",   # <-- Add this line
+                "doc_year": 1990            # <-- And/or this line
             },
             timeout=120
         )

@@ -1,0 +1,412 @@
+[
+  {
+    "id": 1,
+    "category": "System Design",
+    "discipline": "Hydropower Engineering",
+    "difficulty": "Expert",
+    "question": "What classification best describes Itaipu’s hydro scheme?",
+    "answer": "A run-of-river plant with large upstream regulation, relying on basin-wide flow control rather than seasonal storage alone."
+  },
+  {
+    "id": 2,
+    "category": "System Design",
+    "discipline": "Hydraulics",
+    "difficulty": "Expert",
+    "question": "What hydraulic head range was adopted for turbine design?",
+    "answer": "A gross head close to 120 meters, with operating variations defined by reservoir and tailrace levels."
+  },
+  {
+    "id": 3,
+    "category": "System Design",
+    "discipline": "Energy Planning",
+    "difficulty": "Expert",
+    "question": "What optimization criteria governed installed capacity?",
+    "answer": "Maximization of firm energy, grid compatibility for 50/60 Hz systems, and minimization of cost per kWh under hydrological constraints."
+  },
+  {
+    "id": 4,
+    "category": "System Design",
+    "discipline": "Project Engineering",
+    "difficulty": "Expert",
+    "question": "Why was staged commissioning adopted?",
+    "answer": "To reduce financial exposure, enable early revenue generation, and validate electromechanical systems incrementally."
+  },
+  {
+    "id": 5,
+    "category": "Risk Engineering",
+    "discipline": "Project Feasibility",
+    "difficulty": "Expert",
+    "question": "What engineering risks dominated early feasibility?",
+    "answer": "Extreme flood handling, river diversion feasibility, foundation treatment reliability, and binational operational coordination."
+  },
+
+  {
+    "id": 6,
+    "category": "Hydrology",
+    "discipline": "Basin Engineering",
+    "difficulty": "Expert",
+    "question": "What hydrological datasets were used?",
+    "answer": "Long-term fluviometric, pluviometric, and sedimentation records from Paraná basin monitoring stations."
+  },
+  {
+    "id": 7,
+    "category": "Hydrology",
+    "discipline": "Systems Modeling",
+    "difficulty": "Expert",
+    "question": "How was basin regulation modeled?",
+    "answer": "Using multi-reservoir simulation models incorporating upstream dams under three development scenarios."
+  },
+  {
+    "id": 8,
+    "category": "Hydrology",
+    "discipline": "Flood Engineering",
+    "difficulty": "Expert",
+    "question": "What was the design philosophy for extreme floods?",
+    "answer": "Conservative spillway sizing based on statistical flood frequency analysis with added structural safety margins."
+  },
+  {
+    "id": 9,
+    "category": "Hydrology",
+    "discipline": "Energy Optimization",
+    "difficulty": "Expert",
+    "question": "How does upstream cascade regulation affect Itaipu?",
+    "answer": "It reduces flow variability, increasing firm energy output and turbine utilization."
+  },
+  {
+    "id": 10,
+    "category": "Hydrology",
+    "discipline": "Sediment Engineering",
+    "difficulty": "Expert",
+    "question": "How was sediment transport addressed?",
+    "answer": "Through upstream sediment retention and reservoir geometry that minimizes deposition near intake structures."
+  },
+
+  {
+    "id": 11,
+    "category": "Construction",
+    "discipline": "River Engineering",
+    "difficulty": "Expert",
+    "question": "What river diversion strategy was selected?",
+    "answer": "A large open diversion channel excavated in basalt to allow dry construction of the main structures."
+  },
+  {
+    "id": 12,
+    "category": "Construction",
+    "discipline": "Construction Engineering",
+    "difficulty": "Expert",
+    "question": "Why was a diversion channel preferred over tunnels?",
+    "answer": "Due to geological suitability, faster construction, and lower excavation risk."
+  },
+  {
+    "id": 13,
+    "category": "Construction",
+    "discipline": "Hydraulics",
+    "difficulty": "Expert",
+    "question": "What was the peak diverted flow capacity?",
+    "answer": "The channel was designed to safely pass high Paraná River flows during construction phases."
+  },
+  {
+    "id": 14,
+    "category": "Construction",
+    "discipline": "Project Milestones",
+    "difficulty": "Expert",
+    "question": "When was river closure executed?",
+    "answer": "October 1978, following completion of the diversion channel and cofferdams."
+  },
+
+  {
+    "id": 15,
+    "category": "Structural Engineering",
+    "discipline": "Dam Engineering",
+    "difficulty": "Expert",
+    "question": "Why does Itaipu use multiple dam types?",
+    "answer": "Because valley geometry and foundation conditions vary significantly across the site."
+  },
+  {
+    "id": 16,
+    "category": "Structural Engineering",
+    "discipline": "Dam Engineering",
+    "difficulty": "Expert",
+    "question": "What dam types are present at Itaipu?",
+    "answer": "Concrete gravity, buttress, earthfill, and rockfill dams."
+  },
+  {
+    "id": 17,
+    "category": "Structural Engineering",
+    "discipline": "Structural Optimization",
+    "difficulty": "Expert",
+    "question": "What governs selection of buttress dams?",
+    "answer": "Material efficiency optimization where foundation conditions permit."
+  },
+  {
+    "id": 18,
+    "category": "Structural Engineering",
+    "discipline": "Geotechnics",
+    "difficulty": "Expert",
+    "question": "How was uplift pressure controlled?",
+    "answer": "Using drainage galleries, grout curtains, and foundation drainage systems."
+  },
+  {
+    "id": 19,
+    "category": "Structural Engineering",
+    "discipline": "Seismic Engineering",
+    "difficulty": "Expert",
+    "question": "What seismic considerations were included?",
+    "answer": "Regional seismicity was considered, though seismic loads were secondary to hydraulic and gravity loads."
+  },
+
+  {
+    "id": 20,
+    "category": "Geology",
+    "discipline": "Geotechnical Engineering",
+    "difficulty": "Expert",
+    "question": "What dominant lithology exists at the site?",
+    "answer": "Flood basalts of the Paraná Basin volcanic province."
+  },
+  {
+    "id": 21,
+    "category": "Geology",
+    "discipline": "Foundation Engineering",
+    "difficulty": "Expert",
+    "question": "Why is basalt favorable for dam foundations?",
+    "answer": "Due to high compressive strength and low deformability when properly treated."
+  },
+  {
+    "id": 22,
+    "category": "Geology",
+    "discipline": "Site Investigation",
+    "difficulty": "Expert",
+    "question": "What foundation investigations were performed?",
+    "answer": "Core drilling, geological mapping, permeability testing, and shear strength analysis."
+  },
+  {
+    "id": 23,
+    "category": "Geology",
+    "discipline": "Ground Treatment",
+    "difficulty": "Expert",
+    "question": "What grouting techniques were applied?",
+    "answer": "Curtain grouting, consolidation grouting, and contact grouting beneath concrete structures."
+  },
+  {
+    "id": 24,
+    "category": "Geology",
+    "discipline": "Instrumentation",
+    "difficulty": "Expert",
+    "question": "How was seepage monitored?",
+    "answer": "Through piezometers and drainage gallery instrumentation."
+  },
+
+  {
+    "id": 25,
+    "category": "Spillway",
+    "discipline": "Hydraulic Structures",
+    "difficulty": "Expert",
+    "question": "What is the spillway’s primary safety function?",
+    "answer": "To prevent reservoir overtopping during extreme flood events."
+  },
+  {
+    "id": 26,
+    "category": "Spillway",
+    "discipline": "Flood Engineering",
+    "difficulty": "Expert",
+    "question": "How was spillway discharge capacity defined?",
+    "answer": "Using probable maximum flood scenarios and statistical flood envelopes."
+  },
+  {
+    "id": 27,
+    "category": "Spillway",
+    "discipline": "Mechanical Engineering",
+    "difficulty": "Expert",
+    "question": "What spillway gate type is used?",
+    "answer": "Large radial (tainter) gates with hydraulic actuation."
+  },
+  {
+    "id": 28,
+    "category": "Spillway",
+    "discipline": "Hydraulics",
+    "difficulty": "Expert",
+    "question": "How is cavitation risk mitigated?",
+    "answer": "Through aeration devices, optimized chute geometry, and high-quality surface finishing."
+  },
+  {
+    "id": 29,
+    "category": "Reservoir Operation",
+    "discipline": "Operations Engineering",
+    "difficulty": "Expert",
+    "question": "What operational rules govern reservoir levels?",
+    "answer": "Rules balancing energy production, flood control, and downstream safety."
+  },
+
+  {
+    "id": 30,
+    "category": "Hydraulic Conveyance",
+    "discipline": "Hydraulics",
+    "difficulty": "Expert",
+    "question": "How is flow admitted to turbines?",
+    "answer": "Via reinforced concrete intake structures with trash racks and control gates."
+  },
+  {
+    "id": 31,
+    "category": "Hydraulic Conveyance",
+    "discipline": "Mechanical Engineering",
+    "difficulty": "Expert",
+    "question": "What is the function of trash racks?",
+    "answer": "To prevent debris from entering penstocks and turbines."
+  },
+  {
+    "id": 32,
+    "category": "Hydraulic Conveyance",
+    "discipline": "Structural Engineering",
+    "difficulty": "Expert",
+    "question": "What type of penstocks are used?",
+    "answer": "Steel-lined pressure conduits integrated into dam structures."
+  },
+  {
+    "id": 33,
+    "category": "Hydraulic Conveyance",
+    "discipline": "Hydraulic Transients",
+    "difficulty": "Expert",
+    "question": "How is water hammer controlled?",
+    "answer": "Through controlled gate closure rates and conservative hydraulic design margins."
+  },
+
+  {
+    "id": 34,
+    "category": "Turbines",
+    "discipline": "Mechanical Engineering",
+    "difficulty": "Expert",
+    "question": "Why were Francis turbines selected?",
+    "answer": "They provide optimal efficiency for medium-to-high head and large discharge conditions."
+  },
+  {
+    "id": 35,
+    "category": "Turbines",
+    "discipline": "Mechanical Engineering",
+    "difficulty": "Expert",
+    "question": "What is the nominal output per unit?",
+    "answer": "700 MW per turbine-generator set."
+  },
+  {
+    "id": 36,
+    "category": "Turbines",
+    "discipline": "Manufacturing Engineering",
+    "difficulty": "Expert",
+    "question": "How were turbine runners manufactured?",
+    "answer": "Using high-precision casting and machining, largely in Brazil and Paraguay."
+  },
+  {
+    "id": 37,
+    "category": "Turbines",
+    "discipline": "Performance Engineering",
+    "difficulty": "Expert",
+    "question": "What efficiency levels were targeted?",
+    "answer": "Peak efficiencies exceeding 90 percent under design head conditions."
+  },
+  {
+    "id": 38,
+    "category": "Turbines",
+    "discipline": "Condition Monitoring",
+    "difficulty": "Expert",
+    "question": "How is turbine vibration monitored?",
+    "answer": "Via shaft, bearing, and casing vibration sensors."
+  },
+
+  {
+    "id": 39,
+    "category": "Generators",
+    "discipline": "Electrical Engineering",
+    "difficulty": "Expert",
+    "question": "What generator type is used?",
+    "answer": "Large vertical-axis synchronous generators."
+  },
+  {
+    "id": 40,
+    "category": "Generators",
+    "discipline": "Thermal Engineering",
+    "difficulty": "Expert",
+    "question": "How is heat dissipated in generators?",
+    "answer": "Through advanced air and water cooling systems."
+  },
+  {
+    "id": 41,
+    "category": "Generators",
+    "discipline": "Power Systems",
+    "difficulty": "Expert",
+    "question": "Why dual-frequency operation?",
+    "answer": "To serve Paraguay’s 50 Hz grid and Brazil’s 60 Hz grid."
+  },
+  {
+    "id": 42,
+    "category": "Generators",
+    "discipline": "Electrical Design",
+    "difficulty": "Expert",
+    "question": "Are generators interchangeable between frequencies?",
+    "answer": "No, electrical and mechanical configurations differ."
+  },
+
+  {
+    "id": 43,
+    "category": "Transmission",
+    "discipline": "Power Systems",
+    "difficulty": "Expert",
+    "question": "Why was HVDC adopted?",
+    "answer": "To enable long-distance transmission, frequency decoupling, and reduced losses."
+  },
+  {
+    "id": 44,
+    "category": "Transmission",
+    "discipline": "Power Electronics",
+    "difficulty": "Expert",
+    "question": "What HVDC configuration is used?",
+    "answer": "Bipolar HVDC links connecting Itaipu to Brazil’s southeastern grid."
+  },
+  {
+    "id": 45,
+    "category": "Transmission",
+    "discipline": "High Voltage Engineering",
+    "difficulty": "Expert",
+    "question": "What voltage class is employed?",
+    "answer": "Very-high-voltage systems exceeding 500 kV."
+  },
+  {
+    "id": 46,
+    "category": "Transmission",
+    "discipline": "Grid Protection",
+    "difficulty": "Expert",
+    "question": "How are grid disturbances managed?",
+    "answer": "Through protection relays, fast HVDC control, and load-shedding schemes."
+  },
+
+  {
+    "id": 47,
+    "category": "Manufacturing",
+    "discipline": "Industrial Engineering",
+    "difficulty": "Expert",
+    "question": "What percentage of equipment was locally manufactured?",
+    "answer": "More than 80 percent in Brazil and Paraguay."
+  },
+  {
+    "id": 48,
+    "category": "Manufacturing",
+    "discipline": "Industrial Policy",
+    "difficulty": "Expert",
+    "question": "Why was local manufacturing prioritized?",
+    "answer": "To build industrial capacity, reduce imports, and control costs."
+  },
+  {
+    "id": 49,
+    "category": "Manufacturing",
+    "discipline": "Quality Assurance",
+    "difficulty": "Expert",
+    "question": "How was factory acceptance testing conducted?",
+    "answer": "Under supervision of IECO-ELC-led inspection teams."
+  },
+  {
+    "id": 50,
+    "category": "Manufacturing",
+    "discipline": "Standards",
+    "difficulty": "Expert",
+    "question": "What standards governed fabrication?",
+    "answer": "International civil and electromechanical engineering standards adapted to project scale."
+  }
+]

@@ -7,8 +7,12 @@ def llm_rerank(question, cands, top_n=8):
     items = []
     for i, c in enumerate(cands):
         md = c["metadata"]
+        year = md.get("doc_year")
+        date = md.get("doc_date")
         preview = (md.get("chunk_text", "")[:800]).replace("\n", " ") if "chunk_text" in md else ""
-        items.append(f"{i+1}) id={c['id']} | type={md.get('chunk_type')} | section={md.get('section_path')}\n{preview}")
+        items.append(
+            f"{i+1}) id={c['id']} | year={year} | date={date} | type={md.get('chunk_type')} | section={md.get('section_path')}\n{preview}"
+        )
 
     prompt = f"""
 You are reranking retrieval candidates for a RAG system.
@@ -21,6 +25,11 @@ Candidates:
 
 Return ONLY a JSON array of the best ids in order, length {top_n}.
 Example: [\"id1\",\"id2\",...]
+
+Ranking rules:
+- Prefer candidates that best answer the question.
+- If two candidates are both plausible, prefer the newer one (higher year/date).
+- If the question implies "current/atual/hoje", strongly prefer the newest.
 """.strip()
 
     resp = oai.chat.completions.create(

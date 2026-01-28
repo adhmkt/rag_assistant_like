@@ -27,6 +27,37 @@ def _normalize_for_dedupe(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").lower()).strip()
 
 
+def _get_doc_year(meta: dict) -> int:
+    """Best-effort doc year extraction from metadata."""
+    if not meta:
+        return 0
+    y = meta.get("doc_year")
+    if isinstance(y, int):
+        return y
+    if isinstance(y, str) and y.isdigit():
+        try:
+            return int(y)
+        except Exception:
+            return 0
+    d = meta.get("doc_date")
+    if isinstance(d, str):
+        m = re.match(r"^(\d{4})-\d{2}-\d{2}$", d.strip())
+        if m:
+            try:
+                return int(m.group(1))
+            except Exception:
+                return 0
+    return 0
+
+
+def _sort_newest_first(cands: list[dict]) -> list[dict]:
+    """Stable sort candidates by newest doc_year/doc_date first."""
+    def key(c: dict):
+        md = c.get("metadata", {}) or {}
+        return _get_doc_year(md)
+    return sorted(cands, key=key, reverse=True)
+
+
 def _filter_by_answer_citations(answer: str, snippets: list[dict]) -> list[dict]:
     """Keep only snippets that are actually cited in the answer.
 
@@ -222,6 +253,9 @@ def _pick_grounding_candidates(question: str, ranked: list[dict], max_sources: i
     score_floor_loose = max_score * 0.90 if max_score > 0 else 0.0
     score_floor_strict = max_score * 0.95 if max_score > 0 else 0.0
 
+    # Strong recency preference: consider newer docs first.
+    ranked = _sort_newest_first(ranked)
+
     for c in ranked:
         md = c.get("metadata", {}) or {}
         text = md.get("chunk_text", "") or ""
@@ -337,11 +371,8 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
         cands += pinecone_query(question, 8,  build_filter(kb_id2, language, "section", source_types, debug_no_filter, less_strict))
         cands += pinecone_query(question, 18, build_filter(kb_id2, language, "fine", source_types, debug_no_filter, less_strict))
 
-    # Sort candidates by doc_year descending (latest first)
-    def get_year(c):
-        meta = c.get('metadata', {}) if isinstance(c, dict) else getattr(c, 'metadata', {})
-        return meta.get('doc_year', 0) or 0
-    cands = sorted(cands, key=get_year, reverse=True)
+    # Strong recency preference: keep newer docs first even before rerank.
+    cands = _sort_newest_first(cands)
     cands = dedupe_snippets(cands)
 
     # Rerank and keep only the best few chunks before grounding.
@@ -359,6 +390,9 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
     # If the reranker returns an empty list (e.g., bad/mismatched ids), fall back.
     if not ranked and cands:
         ranked = cands[:12]
+
+    # Enforce strongest preference: newest-first after rerank as well.
+    ranked = _sort_newest_first(ranked)
 
     grounding_cands = _pick_grounding_candidates(question, ranked, max_sources=4)
 

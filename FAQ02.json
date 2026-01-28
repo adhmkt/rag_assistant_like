@@ -1,0 +1,249 @@
+[
+  {
+    "id": 51,
+    "category": "Construction Management",
+    "discipline": "Project Management",
+    "difficulty": "Expert",
+    "question": "What construction management model was used at Itaipu?",
+    "answer": "A centralized binational management model with specialized civil and electromechanical consortia operating under unified technical coordination."
+  },
+  {
+    "id": 52,
+    "category": "Construction Management",
+    "discipline": "Civil Engineering",
+    "difficulty": "Expert",
+    "question": "Who executed the main civil works?",
+    "answer": "The Unicon–Conempa consortium, composed of major Brazilian and Paraguayan construction firms."
+  },
+  {
+    "id": 53,
+    "category": "Construction Management",
+    "discipline": "Concrete Engineering",
+    "difficulty": "Expert",
+    "question": "What characterized Itaipu’s concrete placement operations?",
+    "answer": "Extremely high-volume continuous placement supported by dedicated batching plants, logistics systems, and strict quality control."
+  },
+  {
+    "id": 54,
+    "category": "Construction Management",
+    "discipline": "Logistics Engineering",
+    "difficulty": "Expert",
+    "question": "How was material supply managed during construction?",
+    "answer": "Through dedicated quarries, on-site crushing and batching facilities, and optimized transport corridors."
+  },
+
+  {
+    "id": 55,
+    "category": "Instrumentation",
+    "discipline": "Structural Monitoring",
+    "difficulty": "Expert",
+    "question": "What parameters are continuously monitored at Itaipu?",
+    "answer": "Seepage, deformation, stress, temperature, vibration, and reservoir behavior."
+  },
+  {
+    "id": 56,
+    "category": "Instrumentation",
+    "discipline": "Dam Safety",
+    "difficulty": "Expert",
+    "question": "Why is long-term instrumentation monitoring critical?",
+    "answer": "To verify design assumptions, detect abnormal behavior, and ensure structural safety over the project’s lifespan."
+  },
+  {
+    "id": 57,
+    "category": "Instrumentation",
+    "discipline": "Data Analysis",
+    "difficulty": "Expert",
+    "question": "How is monitoring data evaluated?",
+    "answer": "Through trend analysis, threshold-based alarms, and correlation with hydraulic and operational conditions."
+  },
+
+  {
+    "id": 58,
+    "category": "Operations & Maintenance",
+    "discipline": "Asset Management",
+    "difficulty": "Expert",
+    "question": "What maintenance strategy is applied at Itaipu?",
+    "answer": "An integrated strategy combining preventive, predictive, and corrective maintenance."
+  },
+  {
+    "id": 59,
+    "category": "Operations & Maintenance",
+    "discipline": "Power Plant Operations",
+    "difficulty": "Expert",
+    "question": "How are generating units scheduled for maintenance?",
+    "answer": "Based on operating hours, condition monitoring indicators, and grid demand requirements."
+  },
+  {
+    "id": 60,
+    "category": "Operations & Maintenance",
+    "discipline": "Control Systems",
+    "difficulty": "Expert",
+    "question": "What redundancy exists in operational control systems?",
+    "answer": "Multiple independent layers of control, protection, and backup systems."
+  },
+
+  {
+    "id": 61,
+    "category": "Governance",
+    "discipline": "Infrastructure Governance",
+    "difficulty": "Expert",
+    "question": "What governance principle underpins Itaipu’s operation?",
+    "answer": "Strict binational parity in decision-making, authority, and technical oversight."
+  },
+  {
+    "id": 62,
+    "category": "Governance",
+    "discipline": "Technical Administration",
+    "difficulty": "Expert",
+    "question": "How are technical disagreements resolved?",
+    "answer": "Through joint technical committees and treaty-defined decision procedures."
+  },
+  {
+    "id": 63,
+    "category": "Governance",
+    "discipline": "Institutional Design",
+    "difficulty": "Expert",
+    "question": "Why is Itaipu’s governance model considered unique?",
+    "answer": "Because it balances national sovereignty, engineering efficiency, and long-term operational neutrality."
+  },
+
+  {
+    "id": 64,
+    "category": "Environmental Engineering",
+    "discipline": "Environmental Management",
+    "difficulty": "Expert",
+    "question": "How were environmental constraints incorporated into the project?",
+    "answer": "They were integrated from feasibility studies through construction and operational rule-setting."
+  },
+  {
+    "id": 65,
+    "category": "Environmental Engineering",
+    "discipline": "Hydraulic Management",
+    "difficulty": "Expert",
+    "question": "How is downstream flow continuity maintained?",
+    "answer": "Through regulated turbine discharges and controlled spillway releases."
+  },
+
+  {
+    "id": 66,
+    "category": "Engineering Legacy",
+    "discipline": "Mega-Project Engineering",
+    "difficulty": "Expert",
+    "question": "Why is Itaipu considered a benchmark mega-project?",
+    "answer": "Due to its unprecedented scale, technical rigor, and sustained operational performance."
+  },
+  {
+    "id": 67,
+    "category": "Engineering Legacy",
+    "discipline": "Systems Engineering",
+    "difficulty": "Expert",
+    "question": "Which engineering disciplines are integrated in Itaipu?",
+    "answer": "Civil, hydraulic, geotechnical, mechanical, electrical, systems, and environmental engineering."
+  },
+  {
+    "id": 68,
+    "category": "Engineering Legacy",
+    "discipline": "Knowledge Transfer",
+    "difficulty": "Expert",
+    "question": "Why is Itaipu still studied by engineers today?",
+    "answer": "Because its design and execution provide enduring lessons for large-scale and cross-border infrastructure."
+  },
+  {
+    "id": 69,
+    "category": "Engineering Legacy",
+    "discipline": "Project Strategy",
+    "difficulty": "Expert",
+    "question": "What lessons from Itaipu apply to modern infrastructure projects?",
+    "answer": "Early hydrological rigor, conservative safety margins, and integrated governance frameworks."
+  },
+  {
+    "id": 70,
+    "category": "Engineering Legacy",
+    "discipline": "Technical Documentation",
+    "difficulty": "Expert",
+    "question": "What role does engineering documentation play in Itaipu?",
+    "answer": "It preserves design rationale, construction decisions, and operational knowledge beyond project completion."
+  },
+
+  {
+    "id": 71,
+    "category": "AI & Knowledge Systems",
+    "discipline": "RAG Systems",
+    "difficulty": "Expert",
+    "question": "Are these FAQs suitable for AI-based assistants?",
+    "answer": "Yes, they are concise, low-ambiguity, and technically scoped for accurate retrieval."
+  },
+  {
+    "id": 72,
+    "category": "AI & Knowledge Systems",
+    "discipline": "Information Architecture",
+    "difficulty": "Expert",
+    "question": "Can these FAQs be chunked by discipline?",
+    "answer": "Yes, they can be grouped by civil, electrical, hydraulic, governance, and operational domains."
+  },
+  {
+    "id": 73,
+    "category": "AI & Knowledge Systems",
+    "discipline": "Traceability",
+    "difficulty": "Expert",
+    "question": "Are answers traceable to primary sources?",
+    "answer": "Yes, each answer maps to explicit chapters and sections of the official engineering documentation."
+  },
+  {
+    "id": 74,
+    "category": "AI & Knowledge Systems",
+    "discipline": "Expert Systems",
+    "difficulty": "Expert",
+    "question": "Can this dataset support expert-level Q&A?",
+    "answer": "Yes, terminology and assumptions are aligned with professional engineering practice."
+  },
+  {
+    "id": 75,
+    "category": "AI & Knowledge Systems",
+    "discipline": "Security",
+    "difficulty": "Expert",
+    "question": "Is this content safe for public dissemination?",
+    "answer": "Yes, it contains no sensitive operational or security-critical details."
+  },
+
+  {
+    "id": 76,
+    "category": "Project Overview",
+    "discipline": "Timeline Analysis",
+    "difficulty": "Expert",
+    "question": "What was the total construction duration of Itaipu?",
+    "answer": "Approximately 16 years from initial works to final commissioning."
+  },
+  {
+    "id": 77,
+    "category": "Project Overview",
+    "discipline": "Power Generation",
+    "difficulty": "Expert",
+    "question": "How many generating units does Itaipu have?",
+    "answer": "Eighteen generating units."
+  },
+  {
+    "id": 78,
+    "category": "Project Overview",
+    "discipline": "Capacity Planning",
+    "difficulty": "Expert",
+    "question": "What is the total installed capacity of Itaipu?",
+    "answer": "12,600 megawatts."
+  },
+  {
+    "id": 79,
+    "category": "Project Overview",
+    "discipline": "Mechanical Engineering",
+    "difficulty": "Expert",
+    "question": "What is the primary turbine type used at Itaipu?",
+    "answer": "Francis turbines."
+  },
+  {
+    "id": 80,
+    "category": "Project Overview",
+    "discipline": "Systems Engineering",
+    "difficulty": "Expert",
+    "question": "What is Itaipu’s core engineering achievement?",
+    "answer": "The successful execution and long-term operation of a binational mega-hydroelectric system at unprecedented scale."
+  }
+]
