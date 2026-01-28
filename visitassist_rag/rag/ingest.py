@@ -5,6 +5,25 @@ from visitassist_rag.rag.embeddings import embed_texts
 from visitassist_rag.models.schemas import IngestTextRequest, IngestResponse
 import uuid
 
+
+def _make_summary_chunk_text(section_text: str, max_tokens: int = 220) -> str:
+    """Create a lightweight, deterministic 'summary' chunk.
+
+    This is not an LLM summary; it's a short prefix intended to improve recall for
+    broad queries while keeping retrieval cheap and stable.
+    """
+    st = (section_text or "").strip()
+    if not st:
+        return ""
+    # Prefer the first max_tokens rather than tail.
+    # We reuse take_tail_tokens by taking from the start via tokenization.
+    # (Keeping dependencies minimal; chunking.py already has the tokenizer.)
+    from visitassist_rag.rag.chunking import TOKENIZER
+
+    toks = TOKENIZER.encode(st)
+    head = toks[:max_tokens] if len(toks) > max_tokens else toks
+    return TOKENIZER.decode(head).strip()
+
 def ingest_text_document(kb_id: str, title: str, text: str, source_type: str, source_uri: str, language: str, **kwargs):
     text = normalize_ws(text)
     doc_id = str(uuid.uuid4())
@@ -16,6 +35,20 @@ def ingest_text_document(kb_id: str, title: str, text: str, source_type: str, so
         section_id = str(uuid.uuid4())
         section_ids.append(section_id)
         insert_section(section_id, doc_id, spath, sidx, stext)
+
+        # Add a short 'summary' chunk per section so the query pipeline's
+        # summary retrieval pass has real vectors to hit.
+        summary_text = _make_summary_chunk_text(stext, max_tokens=220)
+        if summary_text:
+            all_chunks.append(type('Chunk', (), {
+                "doc_id": doc_id,
+                "section_id": section_id,
+                "chunk_type": "summary",
+                "chunk_index": 0,
+                "chunk_text": summary_text,
+                "section_path": spath
+            }))
+
         if count_tokens(stext) <= 900:
             section_chunks = [stext]
         else:

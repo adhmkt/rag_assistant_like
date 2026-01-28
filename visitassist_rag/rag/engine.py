@@ -7,6 +7,7 @@ from visitassist_rag.rag.ingest import fallback_kb_id
 from visitassist_rag.models.schemas import QueryRequest, QueryResponse, Snippet
 
 import re
+import time
 
 # Helper to build Pinecone filter
 
@@ -293,7 +294,21 @@ def _pick_grounding_candidates(question: str, ranked: list[dict], max_sources: i
 
     return keep
 
+
+def _candidate_debug_row(c: dict) -> dict:
+    md = c.get("metadata", {}) or {}
+    return {
+        "id": c.get("id"),
+        "score": c.get("score"),
+        "chunk_type": md.get("chunk_type"),
+        "doc_title": md.get("doc_title"),
+        "section_path": md.get("section_path"),
+        "chunk_index": md.get("chunk_index"),
+        "source_type": md.get("source_type"),
+    }
+
 def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", kb_id: str = None, debug: bool = False, debug_no_filter: bool = False, less_strict: bool = False, **kwargs):
+    t0 = time.perf_counter()
     # Mode-based source_type selection
     source_types = None
     if mode == "events":
@@ -306,9 +321,14 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
         source_types = ["faq"]
 
     cands = []
-    cands += pinecone_query(question, 1,  build_filter(kb_id, language, "summary", source_types, debug_no_filter, less_strict))
-    cands += pinecone_query(question, 8,  build_filter(kb_id, language, "section", source_types, debug_no_filter, less_strict))
-    cands += pinecone_query(question, 18, build_filter(kb_id, language, "fine", source_types, debug_no_filter, less_strict))
+    t_retr0 = time.perf_counter()
+    c_summary = pinecone_query(question, 1,  build_filter(kb_id, language, "summary", source_types, debug_no_filter, less_strict))
+    c_section = pinecone_query(question, 8,  build_filter(kb_id, language, "section", source_types, debug_no_filter, less_strict))
+    c_fine = pinecone_query(question, 18, build_filter(kb_id, language, "fine", source_types, debug_no_filter, less_strict))
+    cands += c_summary
+    cands += c_section
+    cands += c_fine
+    t_retr1 = time.perf_counter()
 
     # Fallback to city master KB if empty
     if not cands and fallback_kb_id(kb_id):
@@ -327,10 +347,14 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
     # Rerank and keep only the best few chunks before grounding.
     # This reduces noisy sources (tables/TOC/etc.) and improves answer quality.
     # If reranking fails for any reason, fall back to the original order.
+    t_rer0 = time.perf_counter()
     try:
         ranked = llm_rerank(question, cands, top_n=12)
-    except Exception:
+        rerank_error = None
+    except Exception as e:
         ranked = cands[:12]
+        rerank_error = repr(e)
+    t_rer1 = time.perf_counter()
 
     # If the reranker returns an empty list (e.g., bad/mismatched ids), fall back.
     if not ranked and cands:
@@ -338,19 +362,74 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
 
     grounding_cands = _pick_grounding_candidates(question, ranked, max_sources=4)
 
+    # Pre-compute score diagnostics for debug.
+    ranked_scores: list[float] = []
+    for c in ranked:
+        try:
+            ranked_scores.append(float(c.get("score", 0) or 0))
+        except Exception:
+            ranked_scores.append(0.0)
+    ranked_max_score = max(ranked_scores) if ranked_scores else 0.0
+    ranked_score_floor_loose = ranked_max_score * 0.90 if ranked_max_score > 0 else 0.0
+    ranked_score_floor_strict = ranked_max_score * 0.95 if ranked_max_score > 0 else 0.0
+
     # Never ask the LLM to answer without sources.
+    t_gnd0 = None
+    t_gnd1 = None
     if not grounding_cands:
         answer = "Não encontrei informações relevantes na base para responder com segurança."
         snippets = []
         trace = {"reason": "no_sources"} if debug else None
     else:
+        t_gnd0 = time.perf_counter()
         answer, snippets, trace = grounded_answer(question, grounding_cands, mode=mode, debug=debug)
+        t_gnd1 = time.perf_counter()
 
     # Enforce consistent citation formatting (footer) for API consumers.
     answer = _ensure_citation_footer(answer, language)
 
     # Tighten snippet list to only what was cited.
     snippets = _filter_by_answer_citations(answer, snippets)
+
+    # Merge structured debug info (without leaking full chunk text).
+    if debug:
+        dbg = trace if isinstance(trace, dict) else {}
+        dbg.update({
+            "kb_id": kb_id,
+            "language": language,
+            "mode": mode,
+            "filters": {
+                "debug_no_filter": debug_no_filter,
+                "less_strict": less_strict,
+                "source_types": source_types,
+            },
+            "retrieval": {
+                "counts": {
+                    "summary": len(c_summary),
+                    "section": len(c_section),
+                    "fine": len(c_fine),
+                    "total": len(c_summary) + len(c_section) + len(c_fine),
+                },
+            },
+            "rerank": {
+                "error": rerank_error,
+                "ranked_max_score": ranked_max_score,
+                "score_floor_loose": ranked_score_floor_loose,
+                "score_floor_strict": ranked_score_floor_strict,
+            },
+            "candidates": {
+                "top_pre_rerank": [_candidate_debug_row(c) for c in cands[:8]],
+                "top_reranked": [_candidate_debug_row(c) for c in ranked[:8]],
+                "grounding_selected": [_candidate_debug_row(c) for c in grounding_cands],
+            },
+            "timings_ms": {
+                "retrieval": round((t_retr1 - t_retr0) * 1000.0, 2),
+                "rerank": round((t_rer1 - t_rer0) * 1000.0, 2),
+                "grounding": None if (t_gnd0 is None or t_gnd1 is None) else round((t_gnd1 - t_gnd0) * 1000.0, 2),
+                "total": round((time.perf_counter() - t0) * 1000.0, 2),
+            },
+        })
+        trace = dbg
 
     # Map each candidate to a Snippet object
     from visitassist_rag.models.schemas import Snippet
@@ -378,3 +457,4 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
         ))
 
     return QueryResponse(answer=answer, snippets=snippet_objs, debug=trace if debug else None)
+
