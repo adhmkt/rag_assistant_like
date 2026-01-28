@@ -49,7 +49,16 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
         return meta.get('doc_year', 0) or 0
     cands = sorted(cands, key=get_year, reverse=True)
     cands = dedupe_snippets(cands)
-    answer, snippets, trace = grounded_answer(question, cands, mode=mode, debug=debug)
+
+    # Rerank and keep only the best few chunks before grounding.
+    # This reduces noisy sources (tables/TOC/etc.) and improves answer quality.
+    # If reranking fails for any reason, fall back to the original order.
+    try:
+        ranked = llm_rerank(question, cands, top_n=8)
+    except Exception:
+        ranked = cands[:8]
+
+    answer, snippets, trace = grounded_answer(question, ranked, mode=mode, debug=debug)
 
     # Map each candidate to a Snippet object
     from visitassist_rag.models.schemas import Snippet
