@@ -5,6 +5,11 @@ from visitassist_rag.api.routes_admin import router as admin_router
 
 app = FastAPI(title="VisitAssist RAG Engine")
 
+
+@app.get("/health")
+def health():
+	return {"status": "ok"}
+
 app.include_router(ingest_router, prefix="/v1")
 app.include_router(query_router, prefix="/v1")
 app.include_router(admin_router, prefix="/v1")
