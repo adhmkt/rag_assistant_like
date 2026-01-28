@@ -26,6 +26,69 @@ def _normalize_for_dedupe(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").lower()).strip()
 
 
+def _filter_by_answer_citations(answer: str, snippets: list[dict]) -> list[dict]:
+    """Keep only snippets that are actually cited in the answer.
+
+    The grounding prompt asks the model to cite sources like [S1], [S2], ...
+    This makes the returned snippet list tighter and avoids including unused context.
+    """
+    if not answer or not snippets:
+        return snippets
+
+    cited = {int(m) for m in re.findall(r"\[S(\d+)\]", answer) if m.isdigit()}
+    if not cited:
+        return snippets
+
+    out: list[dict] = []
+    for i, s in enumerate(snippets, start=1):
+        if i in cited:
+            out.append(s)
+
+    return out or snippets
+
+
+def _ensure_citation_footer(answer: str, language: str) -> str:
+    """Normalize citations so the answer ends with a consistent footer.
+
+    If the model emits inline citations (e.g., "... [S1]."), we strip them and
+    append a final footer line:
+      - Portuguese: "Fonte: [S1]"
+      - Other:      "Sources: [S1]"
+
+    If no citations exist, the answer is returned unchanged.
+    """
+    if not answer:
+        return answer
+
+    # Capture citations in order of appearance (unique).
+    found = re.findall(r"\[S(\d+)\]", answer)
+    if not found:
+        return answer
+
+    seen: set[str] = set()
+    citations: list[str] = []
+    for n in found:
+        if n not in seen:
+            seen.add(n)
+            citations.append(f"[S{n}]")
+
+    # Remove any existing footer lines to avoid duplicates.
+    lines = [ln.rstrip() for ln in answer.strip().splitlines()]
+    lines = [ln for ln in lines if not re.match(r"^(fonte|sources)\s*:\s*", ln.strip(), flags=re.IGNORECASE)]
+    body = "\n".join(lines).strip()
+
+    # Strip inline citations.
+    body = re.sub(r"\s*\[S\d+\]", "", body).strip()
+    # Clean up stray spaces before punctuation.
+    body = re.sub(r"\s+([\.,;:!?])", r"\1", body)
+
+    label = "Fonte" if (language or "").lower().startswith("pt") else "Sources"
+    footer = f"{label}: " + ", ".join(citations)
+    if body:
+        return body.rstrip() + "\n" + footer
+    return footer
+
+
 def _looks_like_pdf_table_or_toc(text: str) -> bool:
     """Heuristic filter for PDF-extracted noise (tables/TOC/labels).
 
@@ -66,7 +129,72 @@ def _looks_like_pdf_table_or_toc(text: str) -> bool:
     return False
 
 
-def _pick_grounding_candidates(question: str, ranked: list[dict], max_sources: int = 6) -> list[dict]:
+def _clean_pdf_table_preview(question: str, text: str) -> str:
+    """Make PDF-extracted table/list snippets more readable for the API preview.
+
+    Notes:
+    - This only affects the `Snippet.text` preview, never the stored `source.chunk_text`.
+    - The cleanup is intentionally conservative and should not remove key evidence.
+    """
+    if not text:
+        return text
+
+    q = (question or "").lower()
+    keep_totals = any(k in q for k in ["total", "dreno", "drenos"]) and "instrument" in q
+
+    lines = [ln.strip() for ln in (text or "").splitlines()]
+    lines = [ln for ln in lines if ln]
+    if not lines:
+        return text
+
+    # Drop common numeric header/row label like "10,00" when it precedes real text.
+    if len(lines) >= 2 and re.fullmatch(r"\d{1,4}([.,]\d{1,4})", lines[0]) and re.search(r"[A-Za-zÀ-ÖØ-öø-ÿ]", lines[1]):
+        lines = lines[1:]
+
+    # Optionally drop trailing totals for non-total questions.
+    if not keep_totals:
+        drop_markers = {"total de instrumentos", "total de drenos"}
+        filtered: list[str] = []
+        i = 0
+        while i < len(lines):
+            low = lines[i].lower()
+            if low in drop_markers:
+                # Drop marker line and a following numeric line if present.
+                i += 1
+                if i < len(lines) and re.fullmatch(r"[\d.]+", lines[i]):
+                    i += 1
+                continue
+            filtered.append(lines[i])
+            i += 1
+        lines = filtered
+
+    # Reflow soft-wrapped lines common in PDF text extraction.
+    joined: list[str] = []
+    for ln in lines:
+        if not joined:
+            joined.append(ln)
+            continue
+
+        prev = joined[-1]
+        ln_low = ln.lower()
+        prev_low = prev.lower()
+
+        starts_like_continuation = (
+            ln.startswith("(")
+            or ln_low.startswith(("no ", "na ", "de ", "do ", "da ", "dos ", "das ", "em ", "para ", "por "))
+            or (len(ln.split()) <= 2 and ln[:1].islower())
+        )
+        ends_like_incomplete = prev.endswith(",") or prev_low.endswith((" de", " da", " do"))
+
+        if starts_like_continuation or ends_like_incomplete:
+            joined[-1] = (prev.rstrip(" ,") + " " + ln).strip()
+        else:
+            joined.append(ln)
+
+    return "\n".join(joined).strip() or text
+
+
+def _pick_grounding_candidates(question: str, ranked: list[dict], max_sources: int = 6, min_sources: int = 2) -> list[dict]:
     """Pick the best candidates to pass into grounding.
 
     Goals:
@@ -78,18 +206,38 @@ def _pick_grounding_candidates(question: str, ranked: list[dict], max_sources: i
     seen_text: set[str] = set()
     fine_sections: set[str] = set()
 
-    # Prefer fine chunks early without completely ignoring rerank order.
-    def type_priority(c: dict) -> int:
-        ct = (c.get("metadata", {}) or {}).get("chunk_type", "")
-        return 0 if ct == "fine" else (1 if ct == "summary" else 2)
+    # Dynamic relevance gating using Pinecone similarity scores.
+    # We keep at least `min_sources`, then require candidates to be reasonably close
+    # to the best score to avoid pulling in unrelated table-like chunks.
+    scores = []
+    for c in ranked:
+        try:
+            scores.append(float(c.get("score", 0) or 0))
+        except Exception:
+            scores.append(0.0)
+    max_score = max(scores) if scores else 0.0
+    # Two-stage gate: allow a small set of sources, then become stricter to avoid
+    # drifting into loosely-related PDF chunks.
+    score_floor_loose = max_score * 0.90 if max_score > 0 else 0.0
+    score_floor_strict = max_score * 0.95 if max_score > 0 else 0.0
 
-    ranked2 = sorted(list(ranked), key=lambda c: (type_priority(c), ranked.index(c)))
-
-    for c in ranked2:
+    for c in ranked:
         md = c.get("metadata", {}) or {}
         text = md.get("chunk_text", "") or ""
         chunk_type = md.get("chunk_type", "")
         section_id = md.get("section_id", "")
+
+        try:
+            score = float(c.get("score", 0) or 0)
+        except Exception:
+            score = 0.0
+
+        # After we have enough context, only keep near-top matches.
+        if len(picked) >= min_sources and score < score_floor_strict:
+            continue
+        # Even before min_sources, drop very low scoring outliers.
+        if len(picked) < min_sources and score < score_floor_loose:
+            continue
 
         if chunk_type == "section" and section_id and section_id in fine_sections:
             continue
@@ -113,7 +261,37 @@ def _pick_grounding_candidates(question: str, ranked: list[dict], max_sources: i
     if not picked:
         return ranked[:max_sources]
 
-    return picked
+    # Prune redundant long chunks that contain a smaller picked chunk verbatim.
+    # This commonly happens when a large "section" chunk includes a concise "fine" chunk.
+    texts = []
+    for c in picked:
+        md = c.get("metadata", {}) or {}
+        texts.append((md.get("chunk_text", "") or "", c))
+
+    keep = []
+    for i, (ti, ci) in enumerate(texts):
+        ni = _normalize_for_dedupe(ti)
+        if not ni:
+            continue
+        redundant = False
+        for j, (tj, _cj) in enumerate(texts):
+            if i == j:
+                continue
+            nj = _normalize_for_dedupe(tj)
+            if not nj:
+                continue
+            # If this chunk is much longer and contains another picked chunk, drop it.
+            if len(ni) > len(nj) * 3 and nj in ni:
+                redundant = True
+                break
+        if not redundant:
+            keep.append(ci)
+
+    # Keep ordering stable (preserve the original picked order)
+    keep_ids = {c.get("id") for c in keep}
+    keep = [c for c in picked if c.get("id") in keep_ids]
+
+    return keep
 
 def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", kb_id: str = None, debug: bool = False, debug_no_filter: bool = False, less_strict: bool = False, **kwargs):
     # Mode-based source_type selection
@@ -154,8 +332,25 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
     except Exception:
         ranked = cands[:12]
 
-    grounding_cands = _pick_grounding_candidates(question, ranked, max_sources=6)
-    answer, snippets, trace = grounded_answer(question, grounding_cands, mode=mode, debug=debug)
+    # If the reranker returns an empty list (e.g., bad/mismatched ids), fall back.
+    if not ranked and cands:
+        ranked = cands[:12]
+
+    grounding_cands = _pick_grounding_candidates(question, ranked, max_sources=4)
+
+    # Never ask the LLM to answer without sources.
+    if not grounding_cands:
+        answer = "Não encontrei informações relevantes na base para responder com segurança."
+        snippets = []
+        trace = {"reason": "no_sources"} if debug else None
+    else:
+        answer, snippets, trace = grounded_answer(question, grounding_cands, mode=mode, debug=debug)
+
+    # Enforce consistent citation formatting (footer) for API consumers.
+    answer = _ensure_citation_footer(answer, language)
+
+    # Tighten snippet list to only what was cited.
+    snippets = _filter_by_answer_citations(answer, snippets)
 
     # Map each candidate to a Snippet object
     from visitassist_rag.models.schemas import Snippet
@@ -168,6 +363,11 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
         snippet_type = chunk_type if chunk_type in allowed_types else 'paragraph'
         full_text = meta.get('chunk_text', '')
         preview_text = full_text
+
+        # Improve readability for PDF-extracted table-like chunks.
+        if isinstance(preview_text, str) and preview_text.count("\n") >= 6:
+            preview_text = _clean_pdf_table_preview(question, preview_text)
+
         if isinstance(preview_text, str) and len(preview_text) > max_snippet_chars:
             preview_text = preview_text[:max_snippet_chars].rstrip() + "…"
         snippet_objs.append(Snippet(

@@ -29,6 +29,9 @@ Sources:
 Rules:
 - Cite the minimum number of sources needed to support each statement.
 - If multiple sources say the same thing, cite only one.
+- Do NOT put citations inline in the text.
+- The last line of your answer MUST be exactly: Fonte: [S1] (or Fonte: [S1], [S2] if you used multiple sources).
+- Do not add any text after the Fonte: line.
 - Do not invent facts.
 - Be concise.
 """.strip()
