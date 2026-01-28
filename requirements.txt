@@ -1,0 +1,11 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+gunicorn>=21.2
+pydantic>=1.10
+python-dotenv>=1.0
+openai>=1.0
+pinecone>=5.0
+supabase>=2.0
+tiktoken>=0.7
+requests>=2.31
+PyMuPDF>=1.23
