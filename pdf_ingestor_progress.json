@@ -1,0 +1,100 @@
+{
+  "completed": {
+    "1-10": {
+      "doc_id": "31a91671-afa1-4615-894a-0fc157cf2674",
+      "status": "ok",
+      "ts": 1769610024.4412913
+    },
+    "11-20": {
+      "doc_id": "1ef6e449-2cfc-423e-b4ff-dd23b9901818",
+      "status": "ok",
+      "ts": 1769610039.689894
+    },
+    "21-30": {
+      "doc_id": "0b2bdd19-ff4c-495f-b492-d416b09c435d",
+      "status": "ok",
+      "ts": 1769610056.4127238
+    },
+    "31-40": {
+      "doc_id": "f1442ba4-ab0f-43db-a308-426187d18a62",
+      "status": "ok",
+      "ts": 1769610070.705489
+    },
+    "41-50": {
+      "doc_id": "69517c27-cf5e-4362-8221-a2acce117963",
+      "status": "ok",
+      "ts": 1769610091.8420405
+    },
+    "51-60": {
+      "doc_id": "10aa284a-9d13-4a28-a647-6aa97b17dba7",
+      "status": "ok",
+      "ts": 1769610108.4983299
+    },
+    "61-70": {
+      "doc_id": "bc215fcc-afb2-4f8e-bd7c-c895cd2cac2b",
+      "status": "ok",
+      "ts": 1769610127.606583
+    },
+    "71-80": {
+      "doc_id": "dfbb3427-024f-4552-a12a-5e02ed9b605a",
+      "status": "ok",
+      "ts": 1769610145.5738134
+    },
+    "81-90": {
+      "doc_id": "03e106b4-2a37-4134-a13b-8b124ef8bc78",
+      "status": "ok",
+      "ts": 1769610159.8038495
+    },
+    "91-100": {
+      "doc_id": "664ab62a-2219-4dfe-8e9d-95e113b87701",
+      "status": "ok",
+      "ts": 1769610172.5945477
+    },
+    "101-110": {
+      "doc_id": "e6391d21-4416-4e3c-af91-d007286c45d3",
+      "status": "ok",
+      "ts": 1769610189.7722912
+    },
+    "111-120": {
+      "doc_id": "7446b4c4-908d-4b95-ad3a-e6eee770f5e1",
+      "status": "ok",
+      "ts": 1769610204.0113652
+    },
+    "121-130": {
+      "doc_id": "30afb7f8-e29e-49ac-81ef-d0ef04c8fb94",
+      "status": "ok",
+      "ts": 1769610219.6076646
+    },
+    "131-140": {
+      "doc_id": "c60c4429-9dd8-4279-b459-b259ca4bd64d",
+      "status": "ok",
+      "ts": 1769610234.0246165
+    },
+    "141-150": {
+      "doc_id": "c0b71e71-40ad-438e-aeca-960b1db8d9ae",
+      "status": "ok",
+      "ts": 1769610248.1728206
+    },
+    "151-160": {
+      "doc_id": "77f27b74-d651-4dec-ad89-bbdf8d721a83",
+      "status": "ok",
+      "ts": 1769610261.335953
+    },
+    "161-162": {
+      "doc_id": "a693f3a8-d990-41b9-a4aa-c234f6bb4dc6",
+      "status": "ok",
+      "ts": 1769610265.212826
+    }
+  },
+  "failed": {},
+  "meta": {
+    "pdf": "C:\\\\rag-project\\\\rag_assistant_like\\\\visitassist_rag\\\\Relatorio-Integrado-Sustentabilidade-2024.pdf",
+    "kb_id": "itaipu",
+    "url": "http://localhost:8000/v1",
+    "batch_size": 10,
+    "language": "pt",
+    "doc_date": "2024-01-01",
+    "doc_year": 2024,
+    "title_prefix": "Relatorio-Integrado-Sustentabilidade-2024"
+  }
+}
