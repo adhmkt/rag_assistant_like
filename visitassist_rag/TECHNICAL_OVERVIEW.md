@@ -79,6 +79,8 @@ VisitAssist RAG is a Retrieval-Augmented Generation (RAG) system designed to ing
 3. Access API docs at `http://localhost:8000/docs`.
 4. Run tests with `pytest`.
 
+For client integration examples (cURL/JS/Python), see `CONSUME_API.md`.
+
 ---
 
 ## Example Ingestion/Query
