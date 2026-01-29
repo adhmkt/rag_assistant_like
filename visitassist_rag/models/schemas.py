@@ -33,3 +33,7 @@ class QueryResponse(BaseModel):
     answer: str
     snippets: List[Snippet]
     debug: Optional[Dict[str, Any]] = None
+
+
+class AnswerOnlyResponse(BaseModel):
+    answer: str

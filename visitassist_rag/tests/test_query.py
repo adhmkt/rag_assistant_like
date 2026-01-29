@@ -1,5 +1,15 @@
+import os
+
+import pytest
+
+
+@pytest.mark.skipif(
+    os.getenv("VISITASSIST_RUN_INTEGRATION_TESTS") != "1",
+    reason="Integration test (requires external services). Set VISITASSIST_RUN_INTEGRATION_TESTS=1 to run.",
+)
 def test_query():
     from visitassist_rag.rag.engine import rag_query
+
     resp = rag_query("What is the weather?", kb_id="curitiba__default")
     assert hasattr(resp, "answer")
 
