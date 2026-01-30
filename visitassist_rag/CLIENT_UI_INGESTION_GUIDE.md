@@ -133,7 +133,7 @@ Notes:
 }
 ```
 
-### 4) URL paste fallback (for blocked/unreachable URLs)
+### 4) URL paste fallback (for blocked/unreachable URLs)x
 
 **Route**
 
