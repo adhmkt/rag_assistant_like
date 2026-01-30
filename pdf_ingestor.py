@@ -26,8 +26,8 @@ def _range_key(start_page: int, end_page: int) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Ingest a PDF into the VisitAssist RAG ingest API in batches.")
-    parser.add_argument("--pdf", dest="pdf_path", default=r"C:\\rag-project\\rag_assistant_like\\visitassist_rag\\Documento_Tecnico_Itaipu_RAG_Optimized_v0_9.pdf", help="Path to PDF file to ingest.")
-    parser.add_argument("--kb-id", default="itaipu")
+    parser.add_argument("--pdf", dest="pdf_path", default=r"C:\\rag-project\\rag_assistant_like\\visitassist_rag\\DOME_Cafeicultura.pdf", help="Path to PDF file to ingest.")
+    parser.add_argument("--kb-id", default="coffee")
     parser.add_argument("--url", default="http://localhost:8000/v1")
     parser.add_argument("--batch-size", type=int, default=10, help="Pages per batch (smaller is safer).")
     parser.add_argument("--start-page", type=int, default=1, help="1-based inclusive")
@@ -38,7 +38,7 @@ def main() -> int:
     parser.add_argument("--sleep-between", type=float, default=0.5, help="Sleep seconds between successful batches")
     parser.add_argument("--language", default="pt")
     parser.add_argument("--source-type", default="pdf")
-    parser.add_argument("--title-prefix", default="Documento_Tecnico_Itaipu_RAG_Optimized_v0_9")
+    parser.add_argument("--title-prefix", default="DOME_Cafeicultura.pdf")
     parser.add_argument("--doc-date", default="2026-01-01")
     parser.add_argument("--doc-year", type=int, default=2026)
     parser.add_argument(

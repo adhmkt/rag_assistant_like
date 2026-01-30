@@ -119,6 +119,17 @@ def _definition_guard(
     if not (style.startswith("explicative") or style.startswith("strict")):
         return answer
 
+    is_pt = (language or "").lower().startswith("pt")
+
+    q = (question or "").strip()
+    ql = q.lower()
+    asks_definition = any(k in ql for k in ["diferen", "defini", "o que é", "o que e", "significa", "conceito"])
+
+    # Only apply this guardrail to definition/difference questions.
+    # Otherwise it can be overly restrictive for normal explanatory answers.
+    if not asks_definition:
+        return answer
+
     # Build source bag-of-words.
     src_texts: list[str] = []
     for s in snippets or []:
@@ -170,53 +181,120 @@ def _definition_guard(
     if not citations:
         citations = ["[S1]"]
 
-    is_pt = (language or "").lower().startswith("pt")
     label = "Fonte" if is_pt else "Sources"
 
-    ql = (question or "").lower()
-    asks_definition = any(k in ql for k in ["diferen", "defini", "o que é", "o que e", "significa", "conceito"])
-
-    # Lightweight, strictly-supported fallback for definition/difference questions.
+    # Lightweight, strictly-supported fallback for *maintenance* definition/difference questions.
+    # This is intentionally scoped so it doesn't block other domains.
     if asks_definition and is_pt:
-        terms = []
-        for t in [
-            "manutenção preventiva",
-            "manutencao preventiva",
-            "manutenção preditiva",
-            "manutencao preditiva",
-            "manutenção corretiva",
-            "manutencao corretiva",
-        ]:
-            if t in src:
-                # normalize display
-                if "prevent" in t:
-                    terms.append("manutenção preventiva")
-                elif "predit" in t:
-                    terms.append("manutenção preditiva")
-                elif "corret" in t:
-                    terms.append("manutenção corretiva")
+        q_is_maint = any(k in ql for k in ["manuten", "prevent", "predit", "corret"])
+        src_has_maint_terms = any(
+            t in src
+            for t in [
+                "manutenção preventiva",
+                "manutencao preventiva",
+                "manutenção preditiva",
+                "manutencao preditiva",
+                "manutenção corretiva",
+                "manutencao corretiva",
+            ]
+        )
 
-        terms = list(dict.fromkeys(terms))
+        if q_is_maint or src_has_maint_terms:
+            terms = []
+            for t in [
+                "manutenção preventiva",
+                "manutencao preventiva",
+                "manutenção preditiva",
+                "manutencao preditiva",
+                "manutenção corretiva",
+                "manutencao corretiva",
+            ]:
+                if t in src:
+                    # normalize display
+                    if "prevent" in t:
+                        terms.append("manutenção preventiva")
+                    elif "predit" in t:
+                        terms.append("manutenção preditiva")
+                    elif "corret" in t:
+                        terms.append("manutenção corretiva")
 
-        lines: list[str] = []
-        if terms:
-            lines.append(
-                "Os trechos recuperados mencionam "
-                + ", ".join(terms[:-1] + (["e " + terms[-1]] if len(terms) > 1 else terms))
-                + ", mas não trazem definições/diferenças explícitas entre essas modalidades."
+            terms = list(dict.fromkeys(terms))
+
+            lines: list[str] = []
+            if terms:
+                lines.append(
+                    "Os trechos recuperados mencionam "
+                    + ", ".join(terms[:-1] + (["e " + terms[-1]] if len(terms) > 1 else terms))
+                    + ", mas não trazem definições/diferenças explícitas entre essas modalidades."
+                )
+            else:
+                lines.append(
+                    "Os trechos recuperados não trazem definições/diferenças explícitas sobre isso."
+                )
+
+            # Include a couple of explicit facts if present verbatim.
+            if "a manutenção preditiva é amplamente utilizada em equipamentos críticos" in src:
+                lines.append("Os trechos afirmam que a manutenção preditiva é amplamente utilizada em equipamentos críticos.")
+            if "equipamentos críticos possuem monitoramento contínuo por sensores" in src or "equipamentos criticos possuem monitoramento continuo por sensores" in src:
+                lines.append("Os trechos afirmam que equipamentos críticos possuem monitoramento contínuo por sensores.")
+
+            return " ".join(lines).strip() + "\n" + f"{label}: " + ", ".join(citations)
+
+    # Explicative mode: allow a grounded alternative when the sources don't define the term.
+    # Instead of refusing outright, return a short list of explicit statements from the sources.
+    if style.startswith("explicative"):
+        def _extract_statements(snips: list[dict], *, max_items: int = 2, max_chars: int = 260) -> list[str]:
+            out: list[str] = []
+            for s in snips or []:
+                md = (s.get("metadata", {}) if isinstance(s, dict) else {}) or {}
+                t = (md.get("chunk_text") or md.get("text") or "").strip()
+                if not t:
+                    continue
+                # Normalize whitespace but keep it deterministic.
+                t2 = re.sub(r"\s+", " ", t).strip()
+                if not t2:
+                    continue
+                snippet = t2[:max_chars].rstrip()
+                if len(t2) > max_chars:
+                    snippet = snippet.rstrip(" ,;:-") + "…"
+                out.append(snippet)
+                if len(out) >= max_items:
+                    break
+            return out
+
+        # Try to extract the target term from the question for a clearer message.
+        term = None
+        try:
+            m = re.search(r"(?i)(?:o\s+que\s+[eé]|defina|defini(?:c|ç)[aã]o\s+de|conceito\s+de|significa)\s+(.+?)(?:\?|\.|!|$)", q)
+            if m:
+                term = (m.group(1) or "").strip().strip('"\'“”’‘')
+        except Exception:
+            term = None
+
+        statements = _extract_statements(snippets)
+        if is_pt:
+            head = (
+                f"Os trechos recuperados não trazem uma definição explícita de {term}."
+                if term
+                else "Os trechos recuperados não trazem uma definição explícita sobre isso."
             )
+            if statements:
+                body = "\n".join(["Eles afirmam:"] + [f"- {s}" for s in statements])
+            else:
+                body = ""
         else:
-            lines.append(
-                "Os trechos recuperados não trazem definições/diferenças explícitas sobre isso."
+            head = (
+                f"The retrieved sources do not provide an explicit definition of {term}."
+                if term
+                else "The retrieved sources do not provide an explicit definition for this."
             )
+            if statements:
+                body = "\n".join(["They state:"] + [f"- {s}" for s in statements])
+            else:
+                body = ""
 
-        # Include a couple of explicit facts if present verbatim.
-        if "a manutenção preditiva é amplamente utilizada em equipamentos críticos" in src:
-            lines.append("Os trechos afirmam que a manutenção preditiva é amplamente utilizada em equipamentos críticos.")
-        if "equipamentos críticos possuem monitoramento contínuo por sensores" in src or "equipamentos criticos possuem monitoramento continuo por sensores" in src:
-            lines.append("Os trechos afirmam que equipamentos críticos possuem monitoramento contínuo por sensores.")
-
-        return " ".join(lines).strip() + "\n" + f"{label}: " + ", ".join(citations)
+        msg = (head + ("\n" + body if body else "")).strip()
+        return msg + "\n" + f"{label}: " + ", ".join(citations)
 
     # Generic fallback.
     safe = (
@@ -225,6 +303,161 @@ def _definition_guard(
         else "The retrieved sources do not explicitly define this well enough to answer without inference beyond the sources."
     )
     return safe + "\n" + f"{label}: " + ", ".join(citations)
+
+
+def _question_constraint_guard(
+    *,
+    question: str,
+    answer: str,
+    snippets: list[dict],
+    language: str,
+    answer_style: str,
+) -> str:
+    """Prevent answers from relying on question-only constraints not present in sources.
+
+    Goal: avoid hallucination/inference where the model repeats details present in the
+    *question* (e.g., named entities, years, centuries) that are not present in the
+    retrieved sources.
+
+    This is intentionally generic: it does not try to "fix" any one query; it only
+    blocks unsupported constraints.
+    """
+    if not answer:
+        return answer
+
+    style = (answer_style or "").lower()
+    if not (style.startswith("explicative") or style.startswith("strict")):
+        return answer
+
+    # Build a lowercase bag of source text.
+    src_texts: list[str] = []
+    for s in snippets or []:
+        md = (s.get("metadata", {}) if isinstance(s, dict) else {}) or {}
+        t = md.get("chunk_text") or md.get("text") or ""
+        if t:
+            src_texts.append(str(t))
+    src = "\n".join(src_texts).lower()
+    if not src:
+        return answer
+
+    q = (question or "").strip()
+    if not q:
+        return answer
+
+    # Extract high-signal constraints from the question (years/centuries/proper nouns).
+    constraints: list[str] = []
+    # Years
+    for y in re.findall(r"\b(1[0-9]{3}|20[0-9]{2})\b", q):
+        constraints.append(y)
+    # Centuries (Portuguese/English-ish)
+    for m in re.findall(r"(?i)\b(?:s[eé]culo|century)\s+([ivxlcdm]+|\d{1,2})\b", q):
+        constraints.append(f"século {str(m).upper()}")
+
+    # Proper noun phrases (capture things like "Rio de Janeiro"; also simple 2-3 word names like "São Paulo")
+    name_patterns = [
+        r"\b([A-ZÁÉÍÓÚÂÊÎÔÛÃÕÇ][\wÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]+(?:\s+(?:de|da|do|das|dos)\s+[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÇ][\wÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]+)+)\b",
+        r"\b([A-ZÁÉÍÓÚÂÊÎÔÛÃÕÇ][\wÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]+\s+[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÇ][\wÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]+(?:\s+[A-ZÁÉÍÓÚÂÊÎÔÛÃÕÇ][\wÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]+)?)\b",
+    ]
+    stop_first = {
+        "Quais",
+        "Qual",
+        "Como",
+        "Por",
+        "Porque",
+        "Explique",
+        "Explique-me",
+        "Explique",
+        "What",
+        "Which",
+        "How",
+        "Why",
+        "Explain",
+    }
+    for pat in name_patterns:
+        for m in re.finditer(pat, q):
+            phrase = (m.group(1) or "").strip()
+            if not phrase:
+                continue
+            first = phrase.split()[0]
+            if first in stop_first:
+                continue
+            # Avoid huge captures
+            if len(phrase) > 60:
+                continue
+            constraints.append(phrase)
+
+    # De-duplicate while preserving order.
+    seen: set[str] = set()
+    constraints2: list[str] = []
+    for c in constraints:
+        k = c.lower().strip()
+        if not k or k in seen:
+            continue
+        seen.add(k)
+        constraints2.append(c.strip())
+
+    if not constraints2:
+        return answer
+
+    missing = [c for c in constraints2 if c.lower() not in src]
+    if not missing:
+        return answer
+
+    # Validate claims, not question tokens:
+    # only intervene if the *answer* repeats unsupported question-only constraints.
+    a = answer.lower()
+    echoed = [c for c in missing if c.lower() in a]
+    if not echoed:
+        return answer
+
+    # Preserve citations if present, else default to [S1].
+    cited = re.findall(r"\[S(\d+)\]", answer)
+    cited_unique: list[str] = []
+    seen_c: set[str] = set()
+    for n in cited:
+        if n not in seen_c:
+            seen_c.add(n)
+            cited_unique.append(f"[S{n}]")
+    if not cited_unique:
+        cited_unique = ["[S1]"]
+
+    is_pt = (language or "").lower().startswith("pt")
+    label = "Fonte" if is_pt else "Sources"
+
+    def _extract_statements(snips: list[dict], *, max_items: int = 3, max_chars: int = 280) -> list[str]:
+        out: list[str] = []
+        for s in snips or []:
+            md = (s.get("metadata", {}) if isinstance(s, dict) else {}) or {}
+            t = (md.get("chunk_text") or md.get("text") or "").strip()
+            if not t:
+                continue
+            t2 = re.sub(r"\s+", " ", t).strip()
+            if not t2:
+                continue
+            snippet = t2[:max_chars].rstrip()
+            if len(t2) > max_chars:
+                snippet = snippet.rstrip(" ,;:-") + "…"
+            out.append(snippet)
+            if len(out) >= max_items:
+                break
+        return out
+
+    statements = _extract_statements(snippets)
+    if is_pt:
+        head = "Com base apenas nos trechos recuperados, seguem afirmações explícitas relacionadas ao tema:"
+        if statements:
+            body = "\n".join([f"- {s}" for s in statements])
+        else:
+            body = "Os trechos recuperados não contêm informação explícita suficiente para responder sem inferência além das fontes."
+    else:
+        head = "Based only on the retrieved sources, here are explicit statements related to the topic:"
+        if statements:
+            body = "\n".join([f"- {s}" for s in statements])
+        else:
+            body = "The retrieved sources do not contain enough explicit information to answer without inference beyond the sources."
+
+    msg = (head + "\n" + body).strip()
+    return msg + "\n" + f"{label}: " + ", ".join(cited_unique)
 
 # Helper to build Pinecone filter
 
@@ -694,6 +927,15 @@ def rag_query(
 
     # Prevent definition-by-inference for both styles (more important for explicative).
     answer = _definition_guard(
+        question=question,
+        answer=answer,
+        snippets=snippets,
+        language=language,
+        answer_style=answer_style,
+    )
+
+    # Prevent echoing question-only constraints (dates/entities) not present in sources.
+    answer = _question_constraint_guard(
         question=question,
         answer=answer,
         snippets=snippets,

@@ -9,3 +9,4 @@ supabase>=2.0
 tiktoken>=0.7
 requests>=2.31
 PyMuPDF>=1.23
+beautifulsoup4>=4.12

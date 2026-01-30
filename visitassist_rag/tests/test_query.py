@@ -62,3 +62,87 @@ def test_sort_newest_first_is_stable_for_equal_years():
     c3 = {"id": "c", "score": 0.7, "metadata": {"doc_year": 1990}}
     out = _sort_newest_first([c1, c2, c3])
     assert [c["id"] for c in out] == ["a", "b", "c"]
+
+
+def test_definition_guard_explicative_returns_grounded_facts_when_no_definition():
+    from visitassist_rag.rag.engine import _definition_guard
+
+    question = "O que é café?"
+    # Simulate an LLM trying to define (marker: 'consiste em'), with a citation already attached.
+    answer = "Café consiste em algo.\nFonte: [S1]"
+    snippets = [
+        {
+            "metadata": {
+                "chunk_text": "Isto fez com que o café se deslocasse para o interior do São Paulo, mais precisamente para a região oeste do estado.",
+                "chunk_type": "fine",
+            }
+        }
+    ]
+
+    out = _definition_guard(
+        question=question,
+        answer=answer,
+        snippets=snippets,
+        language="pt",
+        answer_style="explicative",
+    )
+
+    assert "não trazem uma definição explícita" in out
+    assert "Isto fez com que o café se deslocasse" in out
+    assert out.endswith("Fonte: [S1]")
+
+
+def test_definition_guard_strict_keeps_refusal_for_definition_questions():
+    from visitassist_rag.rag.engine import _definition_guard
+
+    question = "O que é café?"
+    answer = "Café consiste em algo.\nFonte: [S1]"
+    snippets = [
+        {
+            "metadata": {
+                "chunk_text": "Isto fez com que o café se deslocasse para o interior do São Paulo.",
+                "chunk_type": "fine",
+            }
+        }
+    ]
+
+    out = _definition_guard(
+        question=question,
+        answer=answer,
+        snippets=snippets,
+        language="pt",
+        answer_style="strict",
+    )
+
+    assert "não contêm definição explícita suficiente" in out
+    assert "Isto fez com que o café se deslocasse" not in out
+    assert out.endswith("Fonte: [S1]")
+
+
+def test_question_constraint_guard_blocks_question_only_entities_and_time():
+    from visitassist_rag.rag.engine import _question_constraint_guard
+
+    question = "Quais fatores explicam a mudança do eixo da produção de café do Rio de Janeiro para São Paulo no século XIX?"
+    # Simulate an answer that repeats question-only constraints.
+    answer = "No século XIX, a mudança do Rio de Janeiro para São Paulo ocorreu por X.\nFonte: [S1]"
+    snippets = [
+        {
+            "metadata": {
+                "chunk_text": "Isto fez com que o café se deslocasse para o interior do São Paulo, mais precisamente para a região oeste do estado. Uma das consequências deste fato foi o aumento dos custos de transporte, levando à construção de ferrovias.",
+                "chunk_type": "fine",
+            }
+        }
+    ]
+
+    out = _question_constraint_guard(
+        question=question,
+        answer=answer,
+        snippets=snippets,
+        language="pt",
+        answer_style="explicative",
+    )
+
+    assert "Rio de Janeiro" not in out
+    assert "século XIX" not in out
+    assert "Isto fez com que o café se deslocasse" in out
+    assert out.endswith("Fonte: [S1]")

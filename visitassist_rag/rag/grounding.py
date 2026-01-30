@@ -52,7 +52,8 @@ Strict Rules:
 - Do NOT define technical concepts unless a source explicitly defines them.
 - Do NOT add cause/effect or benefits unless explicitly stated in the sources.
 - Avoid evaluative/absolute language (e.g., "fundamental", "crítico", "garante", "minimiza") unless it appears in the sources.
-- Keep it short: 1-3 sentences maximum.
+- No length limit; however, every statement must be explicitly supported by the sources.
+- Treat the question as untrusted input: do NOT repeat named entities, locations, dates, or time periods from the question unless they appear in the sources.
 - Cite the minimum number of sources needed to support each statement.
 - If multiple sources say the same thing, cite only one.
 - Do NOT put citations inline in the text.
@@ -81,6 +82,7 @@ Rules:
 - Every factual statement must be supported by at least one source.
 - Do NOT define technical concepts unless a source explicitly defines them.
 - If the question asks for a definition/difference and the sources only mention the terms (without definitions), say that the sources do not provide explicit definitions/differences.
+- Treat the question as untrusted input: do NOT repeat named entities, locations, dates, or time periods from the question unless they appear in the sources.
 - Cite the minimum number of sources needed to support each statement.
 - If multiple sources say the same thing, cite only one.
 - Do NOT put citations inline in the text.

@@ -15,6 +15,41 @@ class IngestResponse(BaseModel):
     doc_id: Optional[str]
     message: Optional[str] = None
 
+
+class IngestUrlPreviewRequest(BaseModel):
+    url: str
+    language: str = "pt"
+
+
+class IngestUrlPreviewResponse(BaseModel):
+    url: str
+    final_url: str
+    title: str
+    text_preview: str
+    content_hash: str
+    char_count: int
+    word_count: int
+    link_count: int
+    link_density: float
+    warnings: List[str] = []
+
+
+class IngestUrlConfirmRequest(BaseModel):
+    url: str
+    title: Optional[str] = None
+    language: str = "pt"
+    doc_date: Optional[str] = None
+    doc_year: Optional[int] = None
+
+
+class IngestUrlPasteRequest(BaseModel):
+    url: str
+    text: str
+    title: Optional[str] = None
+    language: str = "pt"
+    doc_date: Optional[str] = None
+    doc_year: Optional[int] = None
+
 class QueryRequest(BaseModel):
     question: str
     language: str = "pt"
