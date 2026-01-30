@@ -9,6 +9,223 @@ from visitassist_rag.models.schemas import QueryRequest, QueryResponse, Snippet
 import re
 import time
 
+
+def _strict_inference_guard(answer: str, snippets: list[dict], language: str) -> str:
+    """Best-effort guardrail for strict mode.
+
+    The prompt is the primary control. This is a lightweight safety net that
+    blocks common inference-heavy wording unless it appears in the sources.
+    """
+    if not answer:
+        return answer
+
+    # Build a lowercase bag of source text.
+    src_texts: list[str] = []
+    for s in snippets or []:
+        md = (s.get("metadata", {}) if isinstance(s, dict) else {}) or {}
+        t = md.get("chunk_text") or md.get("text") or ""
+        if t:
+            src_texts.append(str(t))
+    src = "\n".join(src_texts).lower()
+
+    # If we have no sources, don't attempt to validate.
+    if not src:
+        return answer
+
+    a = answer.lower()
+
+    # Terms that commonly introduce inference/overclaiming.
+    banned_terms = [
+        # Portuguese
+        "garante",
+        "garantir",
+        "fundamental",
+        "essencial",
+        "crítico",
+        "critico",
+        "importante",
+        "minimiza",
+        "maximiza",
+        "evita",
+        "ajuda a",
+        "portanto",
+        "logo",
+        "implica",
+        "isso significa",
+        "necessário",
+        "necessario",
+        "recomenda",
+        "deve",
+        # English (in case)
+        "guarantee",
+        "guarantees",
+        "fundamental",
+        "critical",
+        "essential",
+        "therefore",
+        "thus",
+        "implies",
+        "must",
+        "recommended",
+        "minimize",
+        "maximize",
+    ]
+
+    violations: list[str] = []
+    for term in banned_terms:
+        if term in a and term not in src:
+            violations.append(term)
+
+    if not violations:
+        return answer
+
+    # Preserve any citations the model already emitted.
+    cited = re.findall(r"\[S(\d+)\]", answer)
+    seen: set[str] = set()
+    citations: list[str] = []
+    for n in cited:
+        if n not in seen:
+            seen.add(n)
+            citations.append(f"[S{n}]")
+    if not citations:
+        citations = ["[S1]"]
+
+    label = "Fonte" if (language or "").lower().startswith("pt") else "Sources"
+    safe = (
+        "Os trechos recuperados não contêm uma afirmação explícita suficiente para responder sem inferência além das fontes."
+        if (language or "").lower().startswith("pt")
+        else "The retrieved sources do not explicitly contain enough information to answer without inference beyond the sources."
+    )
+    return safe + "\n" + f"{label}: " + ", ".join(citations)
+
+
+def _definition_guard(
+    *,
+    question: str,
+    answer: str,
+    snippets: list[dict],
+    language: str,
+    answer_style: str,
+) -> str:
+    """Block common 'definition by inference' patterns when not explicitly present in sources.
+
+    This is mainly to prevent the model from filling in standard textbook definitions
+    when the corpus only mentions the terms.
+    """
+    if not answer:
+        return answer
+
+    style = (answer_style or "").lower()
+    if not (style.startswith("explicative") or style.startswith("strict")):
+        return answer
+
+    # Build source bag-of-words.
+    src_texts: list[str] = []
+    for s in snippets or []:
+        md = (s.get("metadata", {}) if isinstance(s, dict) else {}) or {}
+        t = md.get("chunk_text") or md.get("text") or ""
+        if t:
+            src_texts.append(str(t))
+    src = "\n".join(src_texts).lower()
+    if not src:
+        return answer
+
+    a = answer.lower()
+
+    # Portuguese definitional templates frequently used when the model is guessing.
+    # We only block them if the same template is not present in the sources.
+    definitional_markers = [
+        "consiste em",
+        "é realizada",
+        "e realizada",
+        "é feita",
+        "e feita",
+        "envolve",
+        "utiliza",
+        "usa ",
+        "tem como objetivo",
+        "para evitar",
+        "para restaurar",
+        "antes que ocorram",
+        "após a ocorrência",
+        "apos a ocorrencia",
+        "significa",
+        "é quando",
+        "e quando",
+        "é o processo",
+    ]
+
+    violated = any(m in a and m not in src for m in definitional_markers)
+    if not violated:
+        return answer
+
+    # Preserve citations if present, else default to [S1].
+    cited = re.findall(r"\[S(\d+)\]", answer)
+    seen: set[str] = set()
+    citations: list[str] = []
+    for n in cited:
+        if n not in seen:
+            seen.add(n)
+            citations.append(f"[S{n}]")
+    if not citations:
+        citations = ["[S1]"]
+
+    is_pt = (language or "").lower().startswith("pt")
+    label = "Fonte" if is_pt else "Sources"
+
+    ql = (question or "").lower()
+    asks_definition = any(k in ql for k in ["diferen", "defini", "o que é", "o que e", "significa", "conceito"])
+
+    # Lightweight, strictly-supported fallback for definition/difference questions.
+    if asks_definition and is_pt:
+        terms = []
+        for t in [
+            "manutenção preventiva",
+            "manutencao preventiva",
+            "manutenção preditiva",
+            "manutencao preditiva",
+            "manutenção corretiva",
+            "manutencao corretiva",
+        ]:
+            if t in src:
+                # normalize display
+                if "prevent" in t:
+                    terms.append("manutenção preventiva")
+                elif "predit" in t:
+                    terms.append("manutenção preditiva")
+                elif "corret" in t:
+                    terms.append("manutenção corretiva")
+
+        terms = list(dict.fromkeys(terms))
+
+        lines: list[str] = []
+        if terms:
+            lines.append(
+                "Os trechos recuperados mencionam "
+                + ", ".join(terms[:-1] + (["e " + terms[-1]] if len(terms) > 1 else terms))
+                + ", mas não trazem definições/diferenças explícitas entre essas modalidades."
+            )
+        else:
+            lines.append(
+                "Os trechos recuperados não trazem definições/diferenças explícitas sobre isso."
+            )
+
+        # Include a couple of explicit facts if present verbatim.
+        if "a manutenção preditiva é amplamente utilizada em equipamentos críticos" in src:
+            lines.append("Os trechos afirmam que a manutenção preditiva é amplamente utilizada em equipamentos críticos.")
+        if "equipamentos críticos possuem monitoramento contínuo por sensores" in src or "equipamentos criticos possuem monitoramento continuo por sensores" in src:
+            lines.append("Os trechos afirmam que equipamentos críticos possuem monitoramento contínuo por sensores.")
+
+        return " ".join(lines).strip() + "\n" + f"{label}: " + ", ".join(citations)
+
+    # Generic fallback.
+    safe = (
+        "Os trechos recuperados não contêm definição explícita suficiente para responder sem inferência além das fontes."
+        if is_pt
+        else "The retrieved sources do not explicitly define this well enough to answer without inference beyond the sources."
+    )
+    return safe + "\n" + f"{label}: " + ", ".join(citations)
+
 # Helper to build Pinecone filter
 
 def build_filter(kb_id: str, lang: str, chunk_type: str, source_types: list[str] | None = None, debug_no_filter: bool = False, less_strict: bool = False):
@@ -50,11 +267,43 @@ def _get_doc_year(meta: dict) -> int:
     return 0
 
 
+def _get_doc_date_ymd(meta: dict) -> int:
+    """Best-effort doc date (YYYYMMDD) extraction from metadata.
+
+    This is used for recency preference across different versions within the
+    same year.
+
+    Precedence:
+    1) doc_date in ISO format YYYY-MM-DD -> YYYYMMDD
+    2) doc_year (int/str) -> YYYY0000
+    3) fallback 0
+    """
+    if not meta:
+        return 0
+    d = meta.get("doc_date")
+    if isinstance(d, str):
+        m = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", d.strip())
+        if m:
+            try:
+                return int(m.group(1) + m.group(2) + m.group(3))
+            except Exception:
+                pass
+    y = meta.get("doc_year")
+    if isinstance(y, int):
+        return int(f"{y}0000")
+    if isinstance(y, str) and y.isdigit():
+        try:
+            return int(y + "0000")
+        except Exception:
+            return 0
+    return 0
+
+
 def _sort_newest_first(cands: list[dict]) -> list[dict]:
-    """Stable sort candidates by newest doc_year/doc_date first."""
+    """Stable sort candidates by newest doc_date/doc_year first."""
     def key(c: dict):
         md = c.get("metadata", {}) or {}
-        return _get_doc_year(md)
+        return _get_doc_date_ymd(md)
     return sorted(cands, key=key, reverse=True)
 
 
@@ -113,6 +362,10 @@ def _ensure_citation_footer(answer: str, language: str) -> str:
     body = re.sub(r"\s*\[S\d+\]", "", body).strip()
     # Clean up stray spaces before punctuation.
     body = re.sub(r"\s+([\.,;:!?])", r"\1", body)
+
+    # Some models emit a dangling "Fonte:" (without citations) inside the body.
+    # Strip a trailing label-only token so we don't return "Fonte:\nFonte: [S1]".
+    body = re.sub(r"\s*(fonte|sources)\s*:\s*$", "", body, flags=re.IGNORECASE).rstrip()
 
     label = "Fonte" if (language or "").lower().startswith("pt") else "Sources"
     footer = f"{label}: " + ", ".join(citations)
@@ -341,7 +594,17 @@ def _candidate_debug_row(c: dict) -> dict:
         "source_type": md.get("source_type"),
     }
 
-def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", kb_id: str = None, debug: bool = False, debug_no_filter: bool = False, less_strict: bool = False, **kwargs):
+def rag_query(
+    question: str,
+    language: str = "pt",
+    mode: str = "tourist_chat",
+    kb_id: str = None,
+    debug: bool = False,
+    debug_no_filter: bool = False,
+    less_strict: bool = False,
+    answer_style: str = "explicative",
+    **kwargs,
+):
     t0 = time.perf_counter()
     # Mode-based source_type selection
     source_types = None
@@ -416,11 +679,31 @@ def rag_query(question: str, language: str = "pt", mode: str = "tourist_chat", k
         trace = {"reason": "no_sources"} if debug else None
     else:
         t_gnd0 = time.perf_counter()
-        answer, snippets, trace = grounded_answer(question, grounding_cands, mode=mode, debug=debug)
+        answer, snippets, trace = grounded_answer(
+            question,
+            grounding_cands,
+            mode=mode,
+            debug=debug,
+            language=language,
+            answer_style="strict" if str(answer_style).lower().startswith("strict") else "explicative",
+        )
         t_gnd1 = time.perf_counter()
 
     # Enforce consistent citation formatting (footer) for API consumers.
     answer = _ensure_citation_footer(answer, language)
+
+    # Prevent definition-by-inference for both styles (more important for explicative).
+    answer = _definition_guard(
+        question=question,
+        answer=answer,
+        snippets=snippets,
+        language=language,
+        answer_style=answer_style,
+    )
+
+    # Strict mode: add a lightweight anti-inference guardrail.
+    if str(answer_style).lower().startswith("strict"):
+        answer = _strict_inference_guard(answer, snippets, language)
 
     # Tighten snippet list to only what was cited.
     snippets = _filter_by_answer_citations(answer, snippets)

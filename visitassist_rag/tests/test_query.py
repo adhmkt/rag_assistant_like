@@ -29,12 +29,29 @@ def test_ensure_citation_footer_multi_sources():
     assert out.endswith("Fonte: [S2], [S1]")
 
 
+def test_ensure_citation_footer_strips_dangling_fonte_label():
+    from visitassist_rag.rag.engine import _ensure_citation_footer
+
+    out = _ensure_citation_footer("X. Fonte:\nFonte: [S1]", "pt")
+    assert "\nFonte:\n" not in out
+    assert out.endswith("Fonte: [S1]")
+
+
 def test_get_doc_year_prefers_doc_year_over_date():
     from visitassist_rag.rag.engine import _get_doc_year
 
     assert _get_doc_year({"doc_year": 2026, "doc_date": "1990-01-01"}) == 2026
     assert _get_doc_year({"doc_date": "1990-01-01"}) == 1990
     assert _get_doc_year({"doc_year": "2001"}) == 2001
+
+
+def test_sort_newest_first_prefers_full_doc_date_within_year():
+    from visitassist_rag.rag.engine import _sort_newest_first
+
+    c1 = {"id": "old", "score": 0.9, "metadata": {"doc_date": "2026-01-01"}}
+    c2 = {"id": "new", "score": 0.8, "metadata": {"doc_date": "2026-12-31"}}
+    out = _sort_newest_first([c1, c2])
+    assert [c["id"] for c in out] == ["new", "old"]
 
 
 def test_sort_newest_first_is_stable_for_equal_years():
