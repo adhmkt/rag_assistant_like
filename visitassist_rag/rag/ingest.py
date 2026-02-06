@@ -103,7 +103,9 @@ def ingest_text_document(kb_id: str, title: str, text: str, source_type: str, so
         if doc_year:
             meta["doc_year"] = doc_year
         pine_vectors.append((chunk_id, emb, meta))
-    upsert_chunks(pine_vectors)
+    # Store vectors in a kb-scoped namespace so domains/KBs don't mix.
+    # kb_id is also stored in metadata for debugging/secondary filtering.
+    upsert_chunks(pine_vectors, namespace=kb_id)
     return IngestResponse(success=True, doc_id=doc_id)
 
 def fallback_kb_id(kb_id: str):

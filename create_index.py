@@ -11,7 +11,7 @@ REGION = os.environ.get("PINECONE_REGION", "us-east-1")
 
 # Use embedding dimension matching your embedding model.
 # text-embedding-3-large = 3072, text-embedding-3-small = 1536
-EMBED_DIM = 1536
+EMBED_DIM = 3072
 
 pc = Pinecone(api_key=API_KEY)
 

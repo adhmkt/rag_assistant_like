@@ -852,9 +852,9 @@ def rag_query(
 
     cands = []
     t_retr0 = time.perf_counter()
-    c_summary = pinecone_query(question, 1,  build_filter(kb_id, language, "summary", source_types, debug_no_filter, less_strict))
-    c_section = pinecone_query(question, 8,  build_filter(kb_id, language, "section", source_types, debug_no_filter, less_strict))
-    c_fine = pinecone_query(question, 18, build_filter(kb_id, language, "fine", source_types, debug_no_filter, less_strict))
+    c_summary = pinecone_query(question, 1,  build_filter(kb_id, language, "summary", source_types, debug_no_filter, less_strict), namespace=kb_id)
+    c_section = pinecone_query(question, 8,  build_filter(kb_id, language, "section", source_types, debug_no_filter, less_strict), namespace=kb_id)
+    c_fine = pinecone_query(question, 18, build_filter(kb_id, language, "fine", source_types, debug_no_filter, less_strict), namespace=kb_id)
     cands += c_summary
     cands += c_section
     cands += c_fine
@@ -863,9 +863,9 @@ def rag_query(
     # Fallback to city master KB if empty
     if not cands and fallback_kb_id(kb_id):
         kb_id2 = fallback_kb_id(kb_id)
-        cands += pinecone_query(question, 1,  build_filter(kb_id2, language, "summary", source_types, debug_no_filter, less_strict))
-        cands += pinecone_query(question, 8,  build_filter(kb_id2, language, "section", source_types, debug_no_filter, less_strict))
-        cands += pinecone_query(question, 18, build_filter(kb_id2, language, "fine", source_types, debug_no_filter, less_strict))
+        cands += pinecone_query(question, 1,  build_filter(kb_id2, language, "summary", source_types, debug_no_filter, less_strict), namespace=kb_id2)
+        cands += pinecone_query(question, 8,  build_filter(kb_id2, language, "section", source_types, debug_no_filter, less_strict), namespace=kb_id2)
+        cands += pinecone_query(question, 18, build_filter(kb_id2, language, "fine", source_types, debug_no_filter, less_strict), namespace=kb_id2)
 
     # Strong recency preference: keep newer docs first even before rerank.
     cands = _sort_newest_first(cands)

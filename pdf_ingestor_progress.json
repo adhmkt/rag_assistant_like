@@ -1,25 +1,14 @@
 {
-  "completed": {
-    "1-10": {
-      "doc_id": "5fcec662-d8a4-428e-8724-4620a4d7a810",
-      "status": "ok",
-      "ts": 1769794161.682652
-    },
-    "11-16": {
-      "doc_id": "889f33a3-f20f-4f7a-bec5-573970b29295",
-      "status": "ok",
-      "ts": 1769794174.1809313
-    }
-  },
+  "completed": {},
   "failed": {},
   "meta": {
-    "pdf": "C:\\\\rag-project\\\\rag_assistant_like\\\\visitassist_rag\\\\DOME_Cafeicultura.pdf",
-    "kb_id": "coffee",
+    "pdf": "C:\\\\rag-project\\\\rag_assistant_like\\\\visitassist_rag\\\\itaipu.pdf",
+    "kb_id": "itaipu",
     "url": "http://localhost:8000/v1",
     "batch_size": 10,
     "language": "pt",
-    "doc_date": "2026-01-01",
-    "doc_year": 2026,
-    "title_prefix": "DOME_Cafeicultura.pdf"
+    "doc_date": "2020-01-01",
+    "doc_year": 2020,
+    "title_prefix": "itaipu.pdf"
   }
 }
