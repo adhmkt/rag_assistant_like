@@ -53,7 +53,7 @@ class IngestUrlPasteRequest(BaseModel):
 class QueryRequest(BaseModel):
     question: str
     language: str = "pt"
-    mode: Optional[Literal["tourist_chat", "faq_first", "events", "directory", "coupons"]] = "tourist_chat"
+    mode: Optional[str] = "tourist_chat"
     debug: Optional[bool] = False
     debug_no_filter: Optional[bool] = False
     less_strict: Optional[bool] = False
